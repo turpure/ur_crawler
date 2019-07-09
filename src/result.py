@@ -5,12 +5,11 @@
 
 
 import redis
-import json
 
-r = redis.Redis(host='127.0.0.1', port=6379, db=5)
+r = redis.Redis(host='127.0.0.1', port=6379, db=3)
 
 keys = r.keys()
 
 for key in keys:
     res = r.get(key)
-    print(res)
+    print(key, res)

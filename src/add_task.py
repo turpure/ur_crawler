@@ -9,7 +9,6 @@ import redis
 
 
 def add_task(cate_id, page_token):
-    # id = '1473502940450448049-189-2-118-805240694'
     res = get_joom_product_by_category.delay(cate_id, page_token)
 
 

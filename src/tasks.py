@@ -20,27 +20,31 @@ def get_joom_product_by_category(category_id, page_token=''):
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
     try:
-        request_data = {"filters":[
+        request_data = {"filters": [
             {"id": "categoryId",
              "value": {"type": "categories",
-                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
+                      "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
+        items = {'cateId': category_id}
+        products = []
         for i in range(4):
             try:
                 request_data = json.dumps(request_data)
                 ret = requests.post(base_url, headers=headers, data=request_data)
                 payload = ret.json()['payload']
-                page_token = payload.get('nextPageToken', '')
+                page_token = payload.get('nextPageToken', 'last')
+                products = payload.get('items', [])
                 break
             except:
                pass
-        rd.lpush('joom_task', ','.join([category_id, page_token]))
-        return ':'.join([category_id, page_token])
+        if page_token != 'last':
+            rd.lpush('joom_task', ','.join([category_id, page_token]))
+        items['products'] = products
+        return items
     except Exception as why:
         return 'fail to get result cause of {}'.format(why)
 
 
 if __name__ == '__main__':
-    # print(get_joom_product('1473502940450448049-189-2-118-805240694'))
     res = get_joom_product_by_category.delay('1473502940450448049-189-2-118-805240694', '')
     print(res)
 
