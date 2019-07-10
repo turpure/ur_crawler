@@ -28,7 +28,5 @@ def get_task():
 
 if __name__ == '__main__':
     get_task()
-    # rd = redis.Redis(**info['redis']['task'])
-    # rd.lpush('joom_task', ','.join(['fef', 'test' ]))
 
 

@@ -19,13 +19,14 @@ def get_joom_product_by_category(category_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
+    items = {'cateId': category_id}
+    products = []
     try:
         request_data = {"filters": [
             {"id": "categoryId",
              "value": {"type": "categories",
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
-        items = {'cateId': category_id}
-        products = []
+
         for i in range(4):
             try:
                 request_data = json.dumps(request_data)
@@ -39,9 +40,10 @@ def get_joom_product_by_category(category_id, page_token=''):
         if page_token != 'last':
             rd.lpush('joom_task', ','.join([category_id, page_token]))
         items['products'] = products
-        return items
     except Exception as why:
-        return 'fail to get result cause of {}'.format(why)
+        print('fail to get result cause of {}'.format(why))
+
+    return items
 
 
 if __name__ == '__main__':

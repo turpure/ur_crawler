@@ -5,7 +5,6 @@
 
 import requests
 import pymysql
-import json
 from config.conf import info
 
 
