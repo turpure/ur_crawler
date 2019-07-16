@@ -4,12 +4,21 @@
 # Author: turpure
 
 from config.conf import info
-from tasks import get_joom_product_by_category
+from cate_tasks import get_joom_product_by_category
+from product_tasks import get_joom_product_by_id
+from reviews_tasks import get_joom_reviews
 import redis
 
 
-def add_task(cate_id, page_token):
-    res = get_joom_product_by_category.delay(cate_id, page_token)
+def add_task(task_type, item_id, page_token):
+    if task_type == 'product':
+        res = get_joom_product_by_id(item_id)
+
+    if task_type == 'cate':
+        res = get_joom_product_by_category(item_id, page_token)
+
+    if task_type == 'reviews':
+        res = get_joom_reviews(item_id, page_token)
 
 
 def get_task():
@@ -21,9 +30,7 @@ def get_task():
         print('get task {} from task queue'.format(task[1]))
         task_info = task[1].decode('utf-8').split(',')
         print(task_info)
-        cate_id = task_info[0]
-        page_token = task_info[1]
-        add_task(cate_id, page_token)
+        add_task(task_info)
 
 
 if __name__ == '__main__':

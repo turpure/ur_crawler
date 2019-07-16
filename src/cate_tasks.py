@@ -45,7 +45,7 @@ def get_joom_product_by_category(category_id, page_token=''):
             except:
                pass
         if page_token != 'last':
-            rd.lpush('joom_task', ','.join([category_id, page_token]))
+            rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
         items['products'] = products
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
@@ -54,10 +54,12 @@ def get_joom_product_by_category(category_id, page_token=''):
 
 
 def parse(rows, cate_id):
-        for row in rows:
-            yield (cate_id, row['id'], row['name'], row['price'],
-                   row['mainImage']['images'][-1]['url'],
-                   row.get('rating', '0'), row['storeId'])
+    global rd
+    for row in rows:
+        rd.lpush('joom_task', ','.join(['product', row['id'], '']))
+        yield (cate_id, row['id'], row['name'], row['price'],
+               row['mainImage']['images'][-1]['url'],
+               row.get('rating', '0'), row['storeId'])
 
 
 def save(rows):
@@ -70,7 +72,8 @@ def save(rows):
 
 
 if __name__ == '__main__':
-    res = get_joom_product_by_category.delay('1473502940450448049-189-2-118-805240694', '')
+    # res = get_joom_product_by_category.delay('1473502940450448049-189-2-118-805240694', '')
+    res = get_joom_product_by_category('5b7bc04a1436d40177ce3b26')
     print(res)
 
 
