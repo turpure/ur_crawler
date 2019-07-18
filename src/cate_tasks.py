@@ -11,7 +11,7 @@ import redis
 from services.db_con import DataBase
 
 
-app = Celery('tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
+app = Celery('cate_tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
 rd = redis.Redis(**info['redis']['task'])
 db = DataBase()
 db.connect()
@@ -19,7 +19,7 @@ con = db.con
 cur = con.cursor()
 
 
-@app.task
+# @app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
@@ -40,6 +40,9 @@ def get_joom_product_by_category(category_id, page_token=''):
                 page_token = payload.get('nextPageToken', 'last')
                 products = payload.get('items', [])
                 rows = parse(products, category_id)
+                for row in rows:
+                    rd.lpush('joom_task', ','.join(['product', row[1], '']))
+                    rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
                 save(rows)
                 break
             except:
@@ -54,9 +57,7 @@ def get_joom_product_by_category(category_id, page_token=''):
 
 
 def parse(rows, cate_id):
-    global rd
     for row in rows:
-        rd.lpush('joom_task', ','.join(['product', row['id'], '']))
         yield (cate_id, row['id'], row['name'], row['price'],
                row['mainImage']['images'][-1]['url'],
                row.get('rating', '0'), row['storeId'])
@@ -72,8 +73,7 @@ def save(rows):
 
 
 if __name__ == '__main__':
-    # res = get_joom_product_by_category.delay('1473502940450448049-189-2-118-805240694', '')
-    res = get_joom_product_by_category('5b7bc04a1436d40177ce3b26')
+    res = get_joom_product_by_category('1473502940450448049-189-2-118-805240694')
     print(res)
 
 

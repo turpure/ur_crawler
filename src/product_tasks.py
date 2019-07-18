@@ -5,13 +5,12 @@
 
 import requests
 from celery import Celery
-import json
 from config.conf import info
 import redis
 from services.db_con import DataBase
 import datetime
 
-app = Celery('tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
+app = Celery('product_tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
 rd = redis.Redis(**info['redis']['task'])
 db = DataBase()
 db.connect()
@@ -27,8 +26,8 @@ def save(rows):
     con.commit()
 
 
-@app.tasks
-def get_joom_product_by_id(product_id):
+@app.task
+def get_joom_product_by_id(product_id, *args):
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
     headers = info['headers']
     for _ in range(3):
@@ -43,7 +42,7 @@ def get_joom_product_by_id(product_id):
 
 
 if __name__ == '__main__':
-    res = get_joom_product_by_id('5b7bc04a1436d40177ce3b26')
+    res = get_joom_product_by_id.delay('5b7bc04a1436d40177ce3b26')
     print(res)
 
 

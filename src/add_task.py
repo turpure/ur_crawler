@@ -10,15 +10,15 @@ from reviews_tasks import get_joom_reviews
 import redis
 
 
-def add_task(task_type, item_id, page_token):
+def add_task(task_type, item_id, page_token=''):
     if task_type == 'product':
-        res = get_joom_product_by_id(item_id)
+        res = get_joom_product_by_id.delay(item_id)
 
     if task_type == 'cate':
         res = get_joom_product_by_category(item_id, page_token)
 
     if task_type == 'reviews':
-        res = get_joom_reviews(item_id, page_token)
+        res = get_joom_reviews.delay(item_id, page_token)
 
 
 def get_task():
@@ -30,7 +30,7 @@ def get_task():
         print('get task {} from task queue'.format(task[1]))
         task_info = task[1].decode('utf-8').split(',')
         print(task_info)
-        add_task(task_info)
+        add_task(*task_info)
 
 
 if __name__ == '__main__':

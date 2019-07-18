@@ -5,13 +5,13 @@
 
 import requests
 from celery import Celery
-import json
 from config.conf import info
 import redis
 from services.db_con import DataBase
 import datetime
+import celeryconfig
 
-app = Celery('tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
+app = Celery('reviews_tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
 rd = redis.Redis(**info['redis']['task'])
 db = DataBase()
 db.connect()
@@ -19,7 +19,7 @@ con = db.con
 cur = con.cursor()
 
 
-@app.tasks
+@app.task
 def get_joom_reviews(product_id, page_token=''):
     base_url = 'https://api.joom.com/1.1/products/{}/reviews?filter_id=all&count=200'.format(product_id)
     params = {'pageToken': page_token}
@@ -50,7 +50,7 @@ def save(row):
 
 
 if __name__ == '__main__':
-    res = get_joom_reviews('5b7bc04a1436d40177ce3b26', '')
+    res = get_joom_reviews.delay('5adb191aefa3716cad3b16ee', '')
     print(res)
 
 
