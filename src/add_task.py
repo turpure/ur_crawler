@@ -4,9 +4,7 @@
 # Author: turpure
 
 from config.conf import info
-from cate_tasks import get_joom_product_by_category
-from product_tasks import get_joom_product_by_id
-from reviews_tasks import get_joom_reviews
+from src.tasks import get_joom_product_by_category, get_joom_reviews, get_joom_product_by_id
 import redis
 
 
@@ -15,7 +13,7 @@ def add_task(task_type, item_id, page_token=''):
         res = get_joom_product_by_id.delay(item_id)
 
     if task_type == 'cate':
-        res = get_joom_product_by_category(item_id, page_token)
+        res = get_joom_product_by_category.delay(item_id, page_token)
 
     if task_type == 'reviews':
         res = get_joom_reviews.delay(item_id, page_token)
