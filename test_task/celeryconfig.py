@@ -5,9 +5,9 @@
 
 
 from kombu import Exchange, Queue
-from celery import platforms
 from config.conf import info
-platforms.C_FORCE_ROOT = True
+
+CELERY_IMPORTS = ('test_task.tasks',)
 
 BROKER_URL = info['redis']['broker']
 CELERY_RESULT_BACKEND = info['redis']['backend']
@@ -19,6 +19,6 @@ CELERY_QUEUES = (
 )
 
 CELERY_ROUTES = {
-    'tasks.taskA': {"queue": "for_task_A", "routing_key": "for_task_A"},
-    'tasks.taskB': {"queue": "for_task_B", "routing_key": "for_task_B"}
+    'test_task.tasks.taskA': {"queue": "for_task_A", "routing_key": "for_task_A"},
+    'test_task.tasks.taskB': {"queue": "for_task_B", "routing_key": "for_task_B"}
 }

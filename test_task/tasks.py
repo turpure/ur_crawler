@@ -5,9 +5,8 @@
 
 # !/usr/bin/env
 # -*-conding:utf-8-*-
-from celery import Celery, platforms
+from celery import Celery
 
-platforms.C_FORCE_ROOT = True
 
 app = Celery()
 app.config_from_object("celeryconfig")
@@ -27,3 +26,5 @@ def taskB(x, y, z):
 def add(x, y):
     return x + y
 
+
+res = add.delay(2,  4)
