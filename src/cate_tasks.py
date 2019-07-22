@@ -19,7 +19,7 @@ con = db.con
 cur = con.cursor()
 
 
-# @app.task
+@app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'

@@ -5,11 +5,9 @@
 
 
 from kombu import Exchange, Queue
-from celery import platforms
 from config.conf import info
 
-platforms.C_FORCE_ROOT = True
-
+CELERY_IMPORTS = ('src.tasks',)
 BROKER_URL = info['redis']['broker']
 CELERY_RESULT_BACKEND = info['redis']['backend']
 
@@ -20,8 +18,8 @@ CELERY_QUEUES = (
 )
 # 路由
 CELERY_ROUTES = {
-    'tasks.get_joom_reviews': {"queue": "reviews_tasks", "routing_key": "reviews_tasks"},
-    'tasks.get_joom_product_by_category': {"queue": "cate_tasks", "routing_key": "cate_tasks"},
-    'tasks.get_joom_product_by_id': {"queue": "product_tasks", "routing_key": "product_tasks"}
+    'src.tasks.get_joom_reviews': {"queue": "reviews_tasks", "routing_key": "reviews_tasks"},
+    'src.tasks.get_joom_product_by_category': {"queue": "cate_tasks", "routing_key": "cate_tasks"},
+    'src.tasks.get_joom_product_by_id': {"queue": "product_tasks", "routing_key": "product_tasks"}
 }
 

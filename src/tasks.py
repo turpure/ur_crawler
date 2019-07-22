@@ -59,7 +59,7 @@ def get_joom_product_by_category(category_id, page_token=''):
     return items
 
 
-@app.task
+# @app.task
 def get_joom_product_by_id(product_id, *args):
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
     headers = info['headers']
@@ -69,9 +69,10 @@ def get_joom_product_by_id(product_id, *args):
             created_date = ret.json()['payload']['variants'][0]['createdTimeMs']
             created_date = datetime.datetime.utcfromtimestamp(created_date / 1000)
             product_save((product_id, created_date))
-            break
+            return 'get product successfully'
         except Exception as why:
             print(why)
+    return 'fail get product {}'.format(product_id)
 
 
 @app.task
@@ -79,21 +80,24 @@ def get_joom_reviews(product_id, page_token=''):
     base_url = 'https://api.joom.com/1.1/products/{}/reviews?filter_id=all&count=200'.format(product_id)
     params = {'pageToken': page_token}
     headers = info['headers']
+    items = None
     for _ in range(3):
         try:
             ret = requests.get(base_url, headers=headers, params=params)
             payload = ret.json()['payload']
             items = payload['items']
             page_token = payload.get('nextPageToken', 'last')
-            for row in items:
-                res = (row['id'], row['productId'], row['starRating'], datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000))
-                review_save(res)
-            break
         except:
             pass
-
+    if items:
+        for row in items:
+            res = (
+            row['id'], row['productId'], row['starRating'], datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000))
+            review_save(res)
+        return 'get reviews successfully'
     if page_token != 'last':
         rd.lpush('joom_task', ','.join(['reviews', product_id, page_token]))
+    return 'fail to get {}, {}'.format(product_id,page_token)
 
 
 def parse(rows, cate_id):
@@ -116,21 +120,28 @@ def product_save(rows):
     global con, cur
     sql = ('insert ignore into joom_product (productId,proCreatedDate)'
            ' values (%s, %s)')
-    cur.execute(sql, rows)
-    con.commit()
+    try:
+        cur.execute(sql, rows)
+        con.commit()
+    except Exception as why:
+        print(why)
 
 
 def review_save(row):
     global con, cur
     sql = ('insert ignore into joom_reviews (reviewId, productId,starRating,reviewCreatedDate)'
            ' values (%s, %s, %s,%s)')
-    cur.execute(sql, row)
-    con.commit()
+    try:
+        cur.execute(sql, row)
+        con.commit()
+    except Exception as why:
+        print(why)
 
 
 if __name__ == '__main__':
-    res = get_joom_product_by_category.delay('1473502940450448049-189-2-118-805240694')
-    print(res.status)
+    # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
+    res = get_joom_product_by_id('5ad3c6e2efa3711361b82a9a')
+    # print(res.status)
 
 
 
