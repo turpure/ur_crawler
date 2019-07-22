@@ -6,11 +6,11 @@
 
 from kombu import Exchange, Queue
 from celery import platforms
-
+from config.conf import info
 platforms.C_FORCE_ROOT = True
 
-BROKER_URL = "redis://localhost:6379/10"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/11"
+BROKER_URL = info['redis']['broker']
+CELERY_RESULT_BACKEND = info['redis']['backend']
 
 CELERY_QUEUES = (
     Queue("default", Exchange("default"), routing_key="default"),
