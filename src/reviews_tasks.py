@@ -9,7 +9,6 @@ from config.conf import info
 import redis
 from services.db_con import DataBase
 import datetime
-import celeryconfig
 
 app = Celery('reviews_tasks', broker=info['redis']['broker'], backend=info['redis']['backend'])
 rd = redis.Redis(**info['redis']['task'])

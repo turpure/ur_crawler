@@ -16,6 +16,7 @@ app = Celery()
 app.config_from_object("celeryconfig")
 
 rd = redis.Redis(**info['redis']['task'])
+res_rd = redis.Redis(**info['redis']['result'])
 db = DataBase()
 db.connect()
 con = db.con
@@ -44,9 +45,13 @@ def get_joom_product_by_category(category_id, page_token=''):
                 products = payload.get('items', [])
                 rows = parse(products, category_id)
                 for row in rows:
+                    res = {'result_type': 'cate', 'cateId': row[0], 'productId': row[1],
+                           'productName': row[2], 'price': row[3],
+                           'mainImage': row[4], 'rating': row[5], 'storeId': row[6]}
+                    res_rd.lpush('joom_result', json.dumps(res))
                     rd.lpush('joom_task', ','.join(['product', row[1], '']))
                     rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
-                cate_save(rows)
+                # cate_save(rows)
                 break
             except:
                pass
@@ -61,16 +66,18 @@ def get_joom_product_by_category(category_id, page_token=''):
 
 @app.task
 def get_joom_product_by_id(product_id, *args):
+    global res_rd
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
     headers = info['headers']
     for _ in range(3):
         try:
             ret = requests.get(base_url, headers=headers)
             created_date = ret.json()['payload']['variants'][0]['createdTimeMs']
-            created_date = datetime.datetime.utcfromtimestamp(created_date / 1000)
-            product_save((product_id, created_date))
+            created_date = str(datetime.datetime.utcfromtimestamp(created_date / 1000))
+            row = {'result_type': 'product', 'created_date': created_date, 'product_id': product_id}
+            row = json.dumps(row)
+            res_rd.lpush('joom_result', row)
             return product_id, created_date
-            # return 'get product successfully'
         except Exception as why:
             print(why)
     return 'fail get product {}'.format(product_id)
@@ -92,10 +99,14 @@ def get_joom_reviews(product_id, page_token=''):
             pass
     if items:
         for row in items:
-            res = (
-            row['id'], row['productId'], row['starRating'], datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000))
-            review_save(res)
-        return 'get reviews successfully'
+            res = {
+                'result_type': 'reviews',
+                'id': row['id'], 'productId': row['productId'],
+                'starRating': row['starRating'],
+                'reviewCreatedDate': datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000)
+            }
+            res_rd.lpush('joom_result', json.dumps(res))
+        return 'get review  successfully'
     if page_token != 'last':
         rd.lpush('joom_task', ','.join(['reviews', product_id, page_token]))
     return 'fail to get {}, {}'.format(product_id,page_token)
