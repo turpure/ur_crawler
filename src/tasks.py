@@ -59,7 +59,7 @@ def get_joom_product_by_category(category_id, page_token=''):
     return items
 
 
-# @app.task
+@app.task
 def get_joom_product_by_id(product_id, *args):
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
     headers = info['headers']
@@ -69,7 +69,8 @@ def get_joom_product_by_id(product_id, *args):
             created_date = ret.json()['payload']['variants'][0]['createdTimeMs']
             created_date = datetime.datetime.utcfromtimestamp(created_date / 1000)
             product_save((product_id, created_date))
-            return 'get product successfully'
+            return product_id, created_date
+            # return 'get product successfully'
         except Exception as why:
             print(why)
     return 'fail get product {}'.format(product_id)
