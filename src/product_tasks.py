@@ -20,29 +20,31 @@ cur = con.cursor()
 
 def save(rows):
     global con, cur
-    sql = ('insert ignore into joom_product (productId,proCreatedDate)'
-           ' values (%s, %s)')
+    sql = ('insert ignore into joom_product (productId,proCreatedDate, reviewsCount)'
+           ' values (%s, %s, %s)')
     cur.execute(sql, rows)
     con.commit()
 
 
-@app.task
+# @app.task
 def get_joom_product_by_id(product_id, *args):
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
     headers = info['headers']
     for _ in range(3):
         try:
             ret = requests.get(base_url, headers=headers)
-            created_date = ret.json()['payload']['variants'][0]['createdTimeMs']
+            payload = ret.json()['payload']
+            reviews_count = int(payload['reviewsCount']['value'])
+            created_date = payload['variants'][0]['createdTimeMs']
             created_date = datetime.datetime.utcfromtimestamp(created_date / 1000)
-            save((product_id, created_date))
+            save((product_id, created_date, reviews_count))
             break
         except Exception as why:
             print(why)
 
 
 if __name__ == '__main__':
-    res = get_joom_product_by_id.delay('5b7bc04a1436d40177ce3b26')
+    res = get_joom_product_by_id('5b7bc04a1436d40177ce3b26')
     print(res)
 
 

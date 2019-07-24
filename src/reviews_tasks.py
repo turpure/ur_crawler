@@ -45,11 +45,12 @@ def save(row):
     sql = ('insert ignore into joom_reviews (reviewId, productId,starRating,reviewCreatedDate)'
            ' values (%s, %s, %s,%s)')
     cur.execute(sql, row)
+    print('save putting {}'.format(row[1]))
     con.commit()
 
 
 if __name__ == '__main__':
-    res = get_joom_reviews.delay('5adb191aefa3716cad3b16ee', '')
+    res = get_joom_reviews('1521448224733469691-154-1-26193-4209136207', '')
     print(res)
 
 

@@ -29,10 +29,10 @@ def save_result(result_info):
     try:
         res = json.loads(result_info)
         if res['result_type'] == 'product':
-            sql = ('insert ignore into joom_product (productId,proCreatedDate)'
-                   ' values (%s, %s)')
+            sql = ('insert  into joom_product (productId,proCreatedDate,reviewsCount)'
+                   ' values (%s, %s, %s) on duplicate key update reviewsCount=values(reviewsCount)')
             try:
-                cur.execute(sql, (res['product_id'], res['created_date']))
+                cur.execute(sql, (res['product_id'], res['created_date'], res['reviews_count']))
                 con.commit()
                 print('putting {}'.format(res['product_id']))
             except Exception as why:
