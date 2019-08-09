@@ -28,7 +28,7 @@ cur = con.cursor()
 @app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
-    rdb.set_trace()
+    # rdb.set_trace()
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
     items = {'cateId': category_id}
@@ -54,7 +54,6 @@ def get_joom_product_by_category(category_id, page_token=''):
                     res_rd.lpush('joom_result', json.dumps(res))
                     rd.lpush('joom_task', ','.join(['product', row[1], '']))
                     rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
-                # cate_save(rows)
                 break
             except:
                pass
