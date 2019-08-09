@@ -59,7 +59,7 @@ def get_joom_product_by_category(category_id, page_token=''):
                pass
         if page_token != 'last':
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
-        items['products'] = products
+        # items['products'] = products
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
 
