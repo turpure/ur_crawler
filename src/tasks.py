@@ -34,7 +34,9 @@ def get_joom_product_by_category(category_id, page_token=''):
     items = {'cateId': category_id}
     products = []
     try:
-        request_data = {"filters": [
+        request_data = {
+            "sorting": [{"fieldName": "age", "order": "asc"}],
+            "filters": [
             {"id": "categoryId",
              "value": {"type": "categories",
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
