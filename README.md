@@ -14,7 +14,8 @@ Celery是一个自带电池的基于Python开发的分布式异步消息任务�
 Celery主要适用于俩大场景：异步和定时。  
 
 #### celery 源码阅读
-celery在Windows下无法调试，可以安装wsl远程调试。
+1.celery在Windows下无法调试，可以安装wsl远程调试。
+2. celery 其实在windows下是可以调试的，可用指定模块的方式实现。
 
 #### celery 启动过程
 先启动流水线，然后分发产品(任务)到流水线上。(像小时候的打麦机)
