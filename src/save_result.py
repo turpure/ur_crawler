@@ -50,10 +50,13 @@ def save_result(result_info):
             sql = ('insert ignore into joom_cateProduct (cateId, productId,productName,price,mainImage,'
                    'rating,storeId,taskCreatedTime, taskUpdatedTime)'
                    ' values (%s, %s, %s,%s,%s,%s,%s,now(),now())')
-            cur.execute(sql, (
-                res['cateId'], res['productId'], res['productName'],
-                res['price'], res['mainImage'], res['rating'], res['storeId']))
-            con.commit()
+            try:
+                cur.execute(sql, (
+                    res['cateId'], res['productId'], res['productName'],
+                    res['price'], res['mainImage'], res['rating'], res['storeId']))
+                con.commit()
+            except Exception as why:
+                print(why)
     except:
         print(result_info)
 
