@@ -36,7 +36,7 @@ def get_joom_product_by_id(product_id, *args):
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
             created_date = payload['variants'][0]['createdTimeMs']
-            created_date = datetime.datetime.utcfromtimestamp(created_date / 1000)
+            created_date = datetime.datetime.fromtimestamp(created_date / 1000.0)
             save((product_id, created_date, reviews_count))
             break
         except Exception as why:

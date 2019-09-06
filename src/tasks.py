@@ -28,11 +28,9 @@ cur = con.cursor()
 @app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
-    # rdb.set_trace()
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
     items = {'cateId': category_id}
-    products = []
     try:
         request_data = {
             "sorting": [{"fieldName": "age", "order": "asc"}],
@@ -41,6 +39,7 @@ def get_joom_product_by_category(category_id, page_token=''):
              "value": {"type": "categories",
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
 
+        # 错误重试
         for i in range(4):
             try:
                 request_data = json.dumps(request_data)
@@ -58,7 +57,7 @@ def get_joom_product_by_category(category_id, page_token=''):
                     rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
                 break
             except:
-               pass
+                pass
         if page_token != 'last':
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
         # items['products'] = products
