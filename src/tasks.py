@@ -35,7 +35,7 @@ def get_token():
     name = 'joom_token'
 
     if not res_cache.get(name):
-        sql = 'select token as x_api_token, bearerToken, x_versionfrom urTools.sys_joom_token'
+        sql = 'select token as x_api_token, bearerToken, x_version from urTools.sys_joom_token'
         cur.execute(sql)
         ret = cur.fetchone()
         res_cache.set(name, ','.join(ret))
