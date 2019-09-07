@@ -25,6 +25,13 @@ con = db.con
 cur = con.cursor()
 
 
+def get_token():
+    sql = 'select token as x_api_token, bearerToken, x_version from urTools.sys_joom_token'
+    cur.execute(sql)
+    ret = cur.fetchone()
+    return ret
+
+
 @app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
@@ -32,6 +39,12 @@ def get_joom_product_by_category(category_id, page_token=''):
     headers = info['headers']
     items = {'cateId': category_id}
     try:
+        token = get_token()
+        x_api_token, bearer_token, x_version = token
+        headers['Authorization'] = bearer_token
+        headers['X-API-Token'] = x_api_token
+        headers['X-Version'] = x_version
+
         request_data = {
             "sorting": [{"fieldName": "age", "order": "asc"}],
             "filters": [
