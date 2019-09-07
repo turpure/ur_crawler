@@ -86,8 +86,8 @@ def get_joom_product_by_category(category_id, page_token=''):
                 break
             except Exception as why:
                 print(f'failed to get cat cause of {why}')
-        print(page_token)
         if page_token != 'last':
+            print(page_token)
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
         # items['products'] = products
     except Exception as why:
