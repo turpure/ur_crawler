@@ -102,6 +102,13 @@ def get_joom_product_by_id(product_id, *args):
     headers = info['headers']
     for _ in range(3):
         try:
+            # 取最新headers
+            token = get_token()
+            x_api_token, bearer_token, x_version = token
+            headers['Authorization'] = bearer_token
+            headers['X-API-Token'] = x_api_token
+            headers['X-Version'] = x_version
+
             ret = requests.get(base_url, headers=headers)
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
