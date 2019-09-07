@@ -113,7 +113,7 @@ def get_joom_product_by_id(product_id, *args):
             ret = requests.get(base_url, headers=headers)
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
-            created_date = payload['variants'][0]['publishedTimeMs']
+            created_date = payload['variants'][0]['createdTimeMs']
             created_date = str(datetime.datetime.fromtimestamp(created_date / 1000))
             row = {'result_type': 'product', 'created_date': created_date,
                    'product_id': product_id,
