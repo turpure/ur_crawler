@@ -19,6 +19,7 @@ app.config_from_object("celeryconfig")
 
 rd = redis.Redis(**info['redis']['task'])
 res_rd = redis.Redis(**info['redis']['result'])
+res_cache = redis.Redis(**info['redis']['cache'])
 db = DataBase()
 db.connect()
 con = db.con
@@ -26,9 +27,23 @@ cur = con.cursor()
 
 
 def get_token():
-    sql = 'select token as x_api_token, bearerToken, x_version from urTools.sys_joom_token'
-    cur.execute(sql)
-    ret = cur.fetchone()
+    """
+    获取最新的joom token
+    缓存放redis里面，过期从mysql里面取
+    :return:
+    """
+    name = 'joom_token'
+
+    if not res_cache.get(name):
+        sql = 'select token as x_api_token, bearerToken, x_version,updateTime from urTools.sys_joom_token'
+        cur.execute(sql)
+        ret = cur.fetchone()
+        res_cache.set(name, ','.join(ret))
+        # 设置过期时间为1天
+        res_cache.expire(name, 60 * 60 * 24)
+
+    else:
+        ret = res_cache.get(name).decode('utf-8').split(',')
     return ret
 
 
@@ -40,7 +55,7 @@ def get_joom_product_by_category(category_id, page_token=''):
     items = {'cateId': category_id}
     try:
         token = get_token()
-        x_api_token, bearer_token, x_version = token
+        x_api_token, bearer_token, x_version, _ = token
         headers['Authorization'] = bearer_token
         headers['X-API-Token'] = x_api_token
         headers['X-Version'] = x_version
@@ -172,8 +187,8 @@ def review_save(row):
 
 if __name__ == '__main__':
     # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    res = get_joom_product_by_id('5ad3c6e2efa3711361b82a9a')
-    # print(res.status)
+    # res = get_joom_product_by_id('5ad3c6e2efa3711361b82a9a')
+    print(get_token())
 
 
 
