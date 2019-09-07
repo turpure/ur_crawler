@@ -68,7 +68,7 @@ def get_joom_product_by_category(category_id, page_token=''):
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
 
         # 错误重试
-        for i in range(4):
+        for i in range(2):
             try:
                 request_data = json.dumps(request_data)
                 ret = requests.post(base_url, headers=headers, data=request_data)
@@ -84,8 +84,9 @@ def get_joom_product_by_category(category_id, page_token=''):
                     rd.lpush('joom_task', ','.join(['product', row[1], '']))
                     rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
                 break
-            except:
-                pass
+            except Exception as why:
+                print(f'failed to get cat cause of {why}')
+        print(page_token)
         if page_token != 'last':
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
         # items['products'] = products
