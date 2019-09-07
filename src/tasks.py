@@ -35,7 +35,7 @@ def get_token():
     name = 'joom_token'
 
     if not res_cache.get(name):
-        sql = 'select token as x_api_token, bearerToken, x_version,updateTime from urTools.sys_joom_token'
+        sql = 'select token as x_api_token, bearerToken, x_versionfrom urTools.sys_joom_token'
         cur.execute(sql)
         ret = cur.fetchone()
         res_cache.set(name, ','.join(ret))
@@ -55,7 +55,7 @@ def get_joom_product_by_category(category_id, page_token=''):
     items = {'cateId': category_id}
     try:
         token = get_token()
-        x_api_token, bearer_token, x_version, _ = token
+        x_api_token, bearer_token, x_version = token
         headers['Authorization'] = bearer_token
         headers['X-API-Token'] = x_api_token
         headers['X-Version'] = x_version
@@ -105,8 +105,8 @@ def get_joom_product_by_id(product_id, *args):
             ret = requests.get(base_url, headers=headers)
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
-            created_date = payload['variants'][0]['createdTimeMs']
-            created_date = str(datetime.datetime.utcfromtimestamp(created_date / 1000))
+            created_date = payload['variants'][0]['publishedTimeMs']
+            created_date = str(datetime.datetime.fromtimestamp(created_date / 1000))
             row = {'result_type': 'product', 'created_date': created_date,
                    'product_id': product_id,
                    'reviews_count': reviews_count}
@@ -138,7 +138,7 @@ def get_joom_reviews(product_id, page_token=''):
                 'result_type': 'reviews',
                 'id': row['id'], 'productId': row['productId'],
                 'starRating': row['starRating'],
-                'reviewCreatedDate': datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000)
+                'reviewCreatedDate': datetime.datetime.fromtimestamp(row['createdTimeMs'] / 1000)
             }
             res_rd.lpush('joom_result', json.dumps(res))
         return 'get review  successfully'

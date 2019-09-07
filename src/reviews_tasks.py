@@ -30,7 +30,7 @@ def get_joom_reviews(product_id, page_token=''):
             items = payload['items']
             page_token = payload.get('nextPageToken', 'last')
             for row in items:
-                res = (row['id'], row['productId'], row['starRating'], datetime.datetime.utcfromtimestamp(row['createdTimeMs'] / 1000))
+                res = (row['id'], row['productId'], row['starRating'], datetime.datetime.fromtimestamp(row['createdTimeMs'] / 1000))
                 save(res)
             break
         except:
