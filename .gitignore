@@ -4,3 +4,5 @@
 venv
 *.pyc
 /config/conf.py
+/config/conf-pro.py
+/config/conf-dev.py

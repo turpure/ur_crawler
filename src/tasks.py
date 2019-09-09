@@ -52,7 +52,7 @@ def get_joom_product_by_category(category_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
-    items = {'cateId': category_id}
+    items = {'cateId': category_id, 'page_token': page_token}
     try:
         token = get_token()
         x_api_token, bearer_token, x_version = token
