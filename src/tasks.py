@@ -99,7 +99,7 @@ def get_joom_product_by_category(category_id, page_token=''):
 @app.task
 def get_joom_product_by_id(product_id, *args):
     global res_rd
-    base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US&_=jxo1mc9e'.format(product_id)
+    base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US'.format(product_id)
     headers = info['headers']
     for _ in range(3):
         try:
@@ -195,8 +195,8 @@ def review_save(row):
 
 if __name__ == '__main__':
     # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    # res = get_joom_product_by_id('5ad3c6e2efa3711361b82a9a')
-    print(get_token())
+    res = get_joom_product_by_id('5d73d18f8b2c370101866d37')
+    print(res)
 
 
 
