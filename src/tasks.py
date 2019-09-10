@@ -68,12 +68,13 @@ def get_joom_product_by_category(category_id, page_token=''):
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
 
         # 错误重试
+        next_page = None
         for i in range(2):
             try:
                 request_data = json.dumps(request_data)
                 ret = requests.post(base_url, headers=headers, data=request_data)
                 payload = ret.json()['payload']
-                page_token = payload.get('nextPageToken', 'last')
+                next_page = payload.get('nextPageToken', 'last')
                 products = payload.get('items', [])
                 rows = parse(products, category_id)
                 for row in rows:
@@ -82,14 +83,19 @@ def get_joom_product_by_category(category_id, page_token=''):
                            'mainImage': row[4], 'rating': row[5], 'storeId': row[6]}
                     res_rd.lpush('joom_result', json.dumps(res))
                     rd.lpush('joom_task', ','.join(['product', row[1], '']))
-                    rd.lpush('joom_task', ','.join(['reviews', row[1], '']))
                 break
             except Exception as why:
                 print(f'failed to get cat cause of {why}')
-        if page_token != 'last':
-            print(page_token)
+
+        # 如果获取到下一页
+        if not next_page:
+            if next_page != 'last':
+                rd.lpush('joom_task', ','.join(['cate', category_id, next_page]))
+        # 如果获取失败，重新传入当前页
+        else:
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
-        # items['products'] = products
+        # 如果获取失败，重新传入当前页
+
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
 
