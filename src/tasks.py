@@ -91,6 +91,8 @@ def get_joom_product_by_category(category_id, page_token=''):
         if next_page:
             if next_page != 'last':
                 rd.lpush('joom_task', ','.join(['cate', category_id, next_page]))
+            else:
+                print('this is the last page!')
         # 如果获取失败，重新传入当前页
         else:
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
