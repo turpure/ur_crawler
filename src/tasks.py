@@ -47,7 +47,7 @@ def get_token():
     return ret
 
 
-@app.task
+# @app.task
 def get_joom_product_by_category(category_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
@@ -88,13 +88,12 @@ def get_joom_product_by_category(category_id, page_token=''):
                 print(f'failed to get cat cause of {why}')
 
         # 如果获取到下一页
-        if not next_page:
+        if next_page:
             if next_page != 'last':
                 rd.lpush('joom_task', ','.join(['cate', category_id, next_page]))
         # 如果获取失败，重新传入当前页
         else:
             rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
-        # 如果获取失败，重新传入当前页
 
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
@@ -201,7 +200,7 @@ def review_save(row):
 
 if __name__ == '__main__':
     # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    res = get_joom_product_by_id('5d73d18f8b2c370101866d37')
+    res = get_joom_product_by_category('1473502940600254907-239-2-118-2183002000', '')
     print(res)
 
 
