@@ -87,6 +87,7 @@ def get_joom_product_by_category(category_id, page_token=''):
                     rd.lpush('joom_task', ','.join(['product', row[1], '']))
                 break
             except Exception as why:
+                next_page = None
                 print(f'failed to get cat cause of {why}')
 
         # 如果获取到下一页
