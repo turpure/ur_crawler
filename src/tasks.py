@@ -20,10 +20,6 @@ app.config_from_object("celeryconfig")
 rd = redis.Redis(**info['redis']['task'])
 res_rd = redis.Redis(**info['redis']['result'])
 res_cache = redis.Redis(**info['redis']['cache'])
-db = DataBase()
-db.connect()
-con = db.con
-cur = con.cursor()
 
 
 def get_token():
@@ -35,15 +31,21 @@ def get_token():
     name = 'joom_token'
 
     if not res_cache.get(name):
+        db = DataBase()
+        db.connect()
+        con = db.con
+        cur = con.cursor()
         sql = 'select token as x_api_token, bearerToken, x_version from urTools.sys_joom_token'
         cur.execute(sql)
         ret = cur.fetchone()
+        db.close()
         res_cache.set(name, ','.join(ret))
         # 设置过期时间为1天
         res_cache.expire(name, 60 * 60 * 2)
 
     else:
         ret = res_cache.get(name).decode('utf-8').split(',')
+
     return ret
 
 
