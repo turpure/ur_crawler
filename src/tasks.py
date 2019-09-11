@@ -40,7 +40,7 @@ def get_token():
         ret = cur.fetchone()
         res_cache.set(name, ','.join(ret))
         # 设置过期时间为1天
-        res_cache.expire(name, 60 * 60 * 24)
+        res_cache.expire(name, 60 * 60 * 2)
 
     else:
         ret = res_cache.get(name).decode('utf-8').split(',')
