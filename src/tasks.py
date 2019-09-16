@@ -50,7 +50,7 @@ def get_token():
 
 
 @app.task
-def get_joom_product_by_category(category_id, page_token=''):
+def get_joom_product_by_category(category_id, parent_id, page_token=''):
     global rd
     base_url = 'https://api.joom.com/1.1/search/products?currency=USD&language=en-US&_=jxo2h958'
     headers = info['headers']
@@ -63,6 +63,7 @@ def get_joom_product_by_category(category_id, page_token=''):
         headers['X-Version'] = x_version
 
         request_data = {
+            # "sorting": [{"fieldName": "salesCount", "order": "desc"}],
             "sorting": [{"fieldName": "age", "order": "asc"}],
             "filters": [
             {"id": "categoryId",
@@ -78,7 +79,7 @@ def get_joom_product_by_category(category_id, page_token=''):
                 payload = ret.json()['payload']
                 next_page = payload.get('nextPageToken', 'last')
                 products = payload.get('items', [])
-                rows = parse(products, category_id)
+                rows = parse(products, parent_id)
                 for row in rows:
                     res = {'result_type': 'cate', 'cateId': row[0], 'productId': row[1],
                            'productName': row[2], 'price': row[3],
@@ -93,12 +94,12 @@ def get_joom_product_by_category(category_id, page_token=''):
         # 如果获取到下一页
         if next_page:
             if next_page != 'last':
-                rd.lpush('joom_task', ','.join(['cate', category_id, next_page]))
+                rd.lpush('joom_task', ','.join(['cate', category_id, parent_id, next_page]))
             else:
                 print('this is the last page!')
         # 如果获取失败，重新传入当前页
         else:
-            rd.lpush('joom_task', ','.join(['cate', category_id, page_token]))
+            rd.lpush('joom_task', ','.join(['cate', category_id, parent_id, page_token]))
 
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
@@ -205,7 +206,7 @@ def review_save(row):
 
 if __name__ == '__main__':
     # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    res = get_joom_product_by_category('1473502940600254907-239-2-118-2183002000', '')
+    res = get_joom_product_by_category('1473502940434879164-183-2-118-2658636360', '')
     print(res)
 
 
