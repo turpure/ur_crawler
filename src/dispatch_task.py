@@ -18,7 +18,7 @@ def add_task(*args):
         item_id = args[1]
         parent_id = args[2]
         page_token = args[3]
-        res = get_joom_product_by_category.delay(item_id, page_token, parent_id)
+        res = get_joom_product_by_category.delay(item_id, parent_id, page_token)
 
     if task_type == 'reviews':
         item_id = args[1]
