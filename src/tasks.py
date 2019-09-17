@@ -64,7 +64,7 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
 
         request_data = {
             # "sorting": [{"fieldName": "salesCount", "order": "desc"}],
-            "sorting": [{"fieldName": "age", "order": "asc"}],
+            "sorting": [{"fieldName": "age", "order": "desc"}],
             "filters": [
             {"id": "categoryId",
              "value": {"type": "categories",
@@ -72,7 +72,7 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
 
         # 错误重试
         next_page = None
-        for i in range(2):
+        for _ in range(2):
             try:
                 request_data = json.dumps(request_data)
                 ret = requests.post(base_url, headers=headers, data=request_data)
@@ -138,6 +138,43 @@ def get_joom_product_by_id(product_id, *args):
 
 
 @app.task
+def update_joom_product_by_id(product_id, *args):
+    global res_rd
+    base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US'.format(product_id)
+    headers = info['headers']
+    for _ in range(2):
+        try:
+            # 取最新headers
+            token = get_token()
+            x_api_token, bearer_token, x_version = token
+            headers['Authorization'] = bearer_token
+            headers['X-API-Token'] = x_api_token
+            headers['X-Version'] = x_version
+
+            ret = requests.get(base_url, headers=headers)
+            payload = ret.json()['payload']
+            reviews_count = int(payload['reviewsCount']['value'])
+            price = payload['lite']['price']
+            rating = payload['lite'].get('rating', 0)
+            created_date = payload['variants'][0]['createdTimeMs']
+            created_date = str(datetime.datetime.fromtimestamp(created_date / 1000))
+            updated_date = str(datetime.datetime.now)[:10]
+            row = {'result_type': 'update',
+                   'created_date': created_date,
+                   'product_id': product_id,
+                   'reviews_count': reviews_count,
+                   'price': price,
+                   'rating': rating,
+                   'updated_date': updated_date,
+                   }
+            row = json.dumps(row)
+            res_rd.lpush('joom_result', row)
+            return product_id, created_date
+        except Exception as why:
+            print(why)
+    return 'fail get product {}'.format(product_id)
+
+@app.task
 def get_joom_reviews(product_id, page_token=''):
     base_url = 'https://api.joom.com/1.1/products/{}/reviews?filter_id=all&count=200'.format(product_id)
     params = {'pageToken': page_token}
@@ -163,7 +200,7 @@ def get_joom_reviews(product_id, page_token=''):
         return 'get review  successfully'
     if page_token != 'last':
         rd.lpush('joom_task', ','.join(['reviews', product_id, page_token]))
-    return 'fail to get {}, {}'.format(product_id,page_token)
+    return 'fail to get {}, {}'.format(product_id, page_token)
 
 
 def parse(rows, cate_id):
@@ -206,7 +243,8 @@ def review_save(row):
 
 if __name__ == '__main__':
     # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    res = get_joom_product_by_category('1473502940434879164-183-2-118-2658636360', '')
+    # res = get_joom_product_by_category('1473502940434879164-183-2-118-2658636360', '')
+    res = update_joom_product_by_id('5d71220e1436d4010188d6d9')
     print(res)
 
 

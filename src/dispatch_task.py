@@ -4,7 +4,7 @@
 # Author: turpure
 
 from config.conf import info
-from src.tasks import get_joom_product_by_category, get_joom_reviews, get_joom_product_by_id
+from src.tasks import get_joom_product_by_category, get_joom_reviews, get_joom_product_by_id, update_joom_product_by_id
 import redis
 
 
@@ -13,6 +13,10 @@ def add_task(*args):
     if task_type == 'product':
         item_id = args[1]
         res = get_joom_product_by_id.delay(item_id)
+
+    if task_type == 'update':
+        item_id = args[1]
+        res = update_joom_product_by_id.delay(item_id)
 
     if task_type == 'cate':
         item_id = args[1]
@@ -39,6 +43,7 @@ def get_task():
 
 
 if __name__ == '__main__':
-    get_task()
+    # get_task()
+    update_joom_product_by_id.delay('5d75b59328fc710101864927')
 
 

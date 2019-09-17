@@ -46,6 +46,16 @@ def save_result(result_info):
                 con.commit()
             except Exception as why:
                 print(why)
+        if res['result_type'] == 'update':
+            sql = ('insert into joom_productLog (productId,reviewsCount,price,rating,publishedDate, updatedDate)'
+                   ' values (%s, %s, %s,%s,%s, %s)')
+            try:
+                cur.execute(sql, (res['product_id'], res['reviews_count'],
+                                  res['price'], res['rating'],
+                                  res['created_date'], res['updated_date']))
+                con.commit()
+            except Exception as why:
+                print(why)
         if res['result_type'] == 'cate':
             sql = ('insert ignore into joom_cateProduct (cateId, productId,productName,price,mainImage,'
                    'rating,storeId,taskCreatedTime, taskUpdatedTime)'
