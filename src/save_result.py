@@ -38,7 +38,7 @@ def save_result(result_info):
             except Exception as why:
                 print(why)
 
-        if res['result_type'] == 'reviews':
+        elif res['result_type'] == 'reviews':
             sql = ('insert ignore into joom_reviews (reviewId, productId,starRating,reviewCreatedDate)'
                    ' values (%s, %s, %s,%s)')
             try:
@@ -46,17 +46,18 @@ def save_result(result_info):
                 con.commit()
             except Exception as why:
                 print(why)
-        if res['result_type'] == 'update':
+        elif res['result_type'] == 'update':
             sql = ('insert into joom_productLog (productId,reviewsCount,price,rating,publishedDate, updatedDate)'
-                   ' values (%s, %s, %s,%s,%s, %s)')
+                   ' values (%s, %s, %s,%s,%s, %s) on duplicate key update price=values(price), rating=values(rating)')
             try:
                 cur.execute(sql, (res['product_id'], res['reviews_count'],
                                   res['price'], res['rating'],
                                   res['created_date'], res['updated_date']))
                 con.commit()
+                print(f'updating {res["product_id"]}')
             except Exception as why:
                 print(why)
-        if res['result_type'] == 'cate':
+        elif res['result_type'] == 'cate':
             sql = ('insert ignore into joom_cateProduct (cateId, productId,productName,price,mainImage,'
                    'rating,storeId,taskCreatedTime, taskUpdatedTime)'
                    ' values (%s, %s, %s,%s,%s,%s,%s,now(),now())')

@@ -158,7 +158,7 @@ def update_joom_product_by_id(product_id, *args):
             rating = payload['lite'].get('rating', 0)
             created_date = payload['variants'][0]['createdTimeMs']
             created_date = str(datetime.datetime.fromtimestamp(created_date / 1000))
-            updated_date = str(datetime.datetime.now)[:10]
+            updated_date = str(datetime.datetime.now())[:10]
             row = {'result_type': 'update',
                    'created_date': created_date,
                    'product_id': product_id,

@@ -43,7 +43,7 @@ def get_task():
 
 
 if __name__ == '__main__':
-    # get_task()
-    update_joom_product_by_id.delay('5d75b59328fc710101864927')
+    get_task()
+    # update_joom_product_by_id.delay('5d75b59328fc710101864927')
 
 
