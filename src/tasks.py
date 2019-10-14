@@ -64,18 +64,20 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
 
         request_data = {
             # "sorting": [{"fieldName": "salesCount", "order": "desc"}],
-            "sorting": [{"fieldName": "age", "order": "desc"}],
+            "sorting": [{"fieldName": "age", "order": "asc"}],
             "filters": [
             {"id": "categoryId",
              "value": {"type": "categories",
                       "items": [{"id": category_id}]}}], "count": 36, 'pageToken': page_token}
+        # 代理
+        proxies = get_proxy()
 
         # 错误重试
         next_page = None
         for _ in range(2):
             try:
                 request_data = json.dumps(request_data)
-                ret = requests.post(base_url, headers=headers, data=request_data)
+                ret = requests.post(base_url, headers=headers, data=request_data, proxies=proxies)
                 payload = ret.json()['payload']
                 next_page = payload.get('nextPageToken', 'last')
                 products = payload.get('items', [])
@@ -112,6 +114,10 @@ def get_joom_product_by_id(product_id, *args):
     global res_rd
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US'.format(product_id)
     headers = info['headers']
+
+    # 代理
+    proxies = get_proxy()
+
     for _ in range(3):
         try:
             # 取最新headers
@@ -121,7 +127,7 @@ def get_joom_product_by_id(product_id, *args):
             headers['X-API-Token'] = x_api_token
             headers['X-Version'] = x_version
 
-            ret = requests.get(base_url, headers=headers)
+            ret = requests.get(base_url, headers=headers, proxies=proxies)
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
             created_date = payload['variants'][0]['createdTimeMs']
@@ -142,6 +148,10 @@ def update_joom_product_by_id(product_id, *args):
     global res_rd
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US'.format(product_id)
     headers = info['headers']
+
+    # 代理
+    proxies = get_proxy()
+
     for _ in range(2):
         try:
             # 取最新headers
@@ -151,7 +161,7 @@ def update_joom_product_by_id(product_id, *args):
             headers['X-API-Token'] = x_api_token
             headers['X-Version'] = x_version
 
-            ret = requests.get(base_url, headers=headers)
+            ret = requests.get(base_url, headers=headers, proxies=proxies)
             payload = ret.json()['payload']
             reviews_count = int(payload['reviewsCount']['value'])
             price = payload['lite']['price']
@@ -173,6 +183,7 @@ def update_joom_product_by_id(product_id, *args):
         except Exception as why:
             print(why)
     return 'fail get product {}'.format(product_id)
+
 
 @app.task
 def get_joom_reviews(product_id, page_token=''):
@@ -239,6 +250,30 @@ def review_save(row):
         con.commit()
     except Exception as why:
         print(why)
+
+
+def get_proxy():
+    # 代理服务器
+    proxy_host = "http-dyn.abuyun.com"
+    proxy_port = "9020"
+
+    # 代理隧道验证信息
+    proxy_user = "H072HD9811R55U5D"
+    proxy_pass = "7516C24601B10FDA"
+
+    proxy_meta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
+        "host": proxy_host,
+        "port": proxy_port,
+        "user": proxy_user,
+        "pass": proxy_pass,
+    }
+
+    proxies = {
+        "http": proxy_meta,
+        "https": proxy_meta,
+    }
+
+    return proxies
 
 
 if __name__ == '__main__':
