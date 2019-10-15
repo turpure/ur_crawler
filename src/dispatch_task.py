@@ -49,7 +49,6 @@ def get_task():
 if __name__ == '__main__':
     get_task()
     # update_joom_product_by_id.delay('5d75b59328fc710101864927')
-    # get_joom_product_by_category.delay('1473502940245384517-115-2-118-2640414327',
-    #                                    '1473502940140554914-82-2-118-181841690', '')
+    # get_joom_product_by_category.delay('1473502940140554914-82-2-118-181841690', '1473502940140554914-82-2-118-181841690', '')
 
 

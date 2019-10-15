@@ -258,8 +258,8 @@ def get_proxy():
     proxy_port = "9020"
 
     # 代理隧道验证信息
-    proxy_user = "H072HD9811R55U5D"
-    proxy_pass = "7516C24601B10FDA"
+    proxy_user = info['proxy']['user']
+    proxy_pass = info['proxy']['pass']
 
     proxy_meta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
         "host": proxy_host,
