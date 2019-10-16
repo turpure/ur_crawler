@@ -110,6 +110,62 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
 
 
 @app.task
+def get_joom_product_by_store(store_name, store_id, page_token=''):
+    global rd
+    base_url = 'https://api.joom.com/1.1/search/content?currency=USD&language=en-US&_=k1smqse0'
+    headers = info['headers']
+    items = {'storeName': store_name, 'storeId': store_id, 'pageToken': page_token}
+    try:
+        token = get_token()
+        x_api_token, bearer_token, x_version = token
+        headers['Authorization'] = bearer_token
+        headers['X-API-Token'] = x_api_token
+        headers['X-Version'] = x_version
+
+        request_data = {
+            "origin":
+                {"source": "store", "storeId": store_id}, "count": 36, "pageToken": ""}
+        # 代理
+        proxies = get_proxy()
+
+        # 错误重试
+        next_page = None
+        for _ in range(2):
+            try:
+                request_data = json.dumps(request_data)
+                ret = requests.post(base_url, headers=headers, data=request_data, proxies=proxies)
+                payload = ret.json()['payload']
+                next_page = payload.get('nextPageToken', 'last')
+                products = payload.get('items', [])
+                rows = store_parse(products, store_name)
+                for row in rows:
+                    res = {'result_type': 'store', 'storeName': row[0], 'productId': row[1],
+                           'productName': row[2], 'price': row[3],
+                           'mainImage': row[4], 'rating': row[5], 'storeId': row[6]}
+                    res_rd.lpush('joom_result', json.dumps(res))
+                    rd.lpush('joom_task', ','.join(['product', row[1], '']))
+                break
+            except Exception as why:
+                next_page = None
+                print(f'failed to get cat cause of {why}')
+
+        # 如果获取到下一页
+        if next_page:
+            if next_page != 'last':
+                rd.lpush('joom_task', ','.join(['store', store_name, store_id, next_page]))
+            else:
+                print('this is the last page!')
+        # 如果获取失败，重新传入当前页
+        else:
+            rd.lpush('joom_task', ','.join(['store', store_name, store_id, page_token]))
+
+    except Exception as why:
+        print('fail to get result cause of {}'.format(why))
+
+    return items
+
+
+@app.task
 def get_joom_product_by_id(product_id, *args):
     global res_rd
     base_url = 'https://api.joom.com/1.1/products/{}?currency=USD&language=en-US'.format(product_id)
@@ -221,6 +277,14 @@ def parse(rows, cate_id):
                row.get('rating', '0'), row['storeId'])
 
 
+def store_parse(rows, store_name):
+    for row in rows:
+        row = row['content']['product']
+        yield (store_name, row['id'], row['name'], row['price'],
+               row['mainImage']['images'][-1]['url'],
+               row.get('rating', '0'), row['storeId'])
+
+
 def cate_save(rows):
     global con, cur
     sql = ('insert ignore into joom_cateProduct (cateId, productId,productName,price,mainImage,'
@@ -277,10 +341,9 @@ def get_proxy():
 
 
 if __name__ == '__main__':
-    # res = get_joom_reviews('5b3774191436d4014721ed20','1-gaNyYXeTy0D4aqAAAAAAy0J2kp60QMAAuDVjMzc5MmVjNTZiNzYzMzgwMWMzNGNmYQ')
-    # res = get_joom_product_by_category('1473502940434879164-183-2-118-2658636360', '')
-    res = update_joom_product_by_id('5d71220e1436d4010188d6d9')
-    print(res)
+    get_joom_product_by_store.delay('YHMen', '1507714387304326627-56-3-709-4035548807', '')
+    # res = get_joom_product_by_store('YHMen', '1507714387304326627-56-3-709-4035548807')
+    # print(res)
 
 
 

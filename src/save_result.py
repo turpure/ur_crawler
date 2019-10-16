@@ -68,6 +68,18 @@ def save_result(result_info):
                 con.commit()
             except Exception as why:
                 print(why)
+
+        elif res['result_type'] == 'store':
+            sql = ('insert ignore into joom_storeProduct (productId,productName,price,mainImage,'
+                   'rating,storeName,storeId,taskCreatedTime, taskUpdatedTime)'
+                   ' values (%s, %s, %s,%s,%s,%s,%s,now(),now())')
+            try:
+                cur.execute(sql, (
+                    res['productId'], res['productName'], res['price'], res['mainImage'],
+                    res['rating'], res['storeName'], res['storeId']))
+                con.commit()
+            except Exception as why:
+                print(why)
     except:
         print(result_info)
 
