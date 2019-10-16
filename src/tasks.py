@@ -124,7 +124,7 @@ def get_joom_product_by_store(store_name, store_id, page_token=''):
 
         request_data = {
             "origin":
-                {"source": "store", "storeId": store_id}, "count": 36, "pageToken": ""}
+                {"source": "store", "storeId": store_id}, "count": 100, "pageToken": ""}
         # 代理
         proxies = get_proxy()
 
