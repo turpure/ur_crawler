@@ -10,6 +10,7 @@ from config.conf import info
 import redis
 from services.db_con import DataBase
 import datetime
+import time
 from celery.contrib import rdb
 
 
@@ -96,6 +97,7 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
         # 如果获取到下一页
         if next_page:
             if next_page != 'last':
+
                 rd.lpush('joom_task', ','.join(['cate', category_id, parent_id, next_page]))
             else:
                 print('this is the last page!')
@@ -112,9 +114,10 @@ def get_joom_product_by_category(category_id, parent_id, page_token=''):
 @app.task
 def get_joom_product_by_store(store_name, store_id, page_token=''):
     global rd
-    base_url = 'https://api.joom.com/1.1/search/content?currency=USD&language=en-US&_=k1smqse0'
+    base_url = 'https://api.joom.com/1.1/search/content?currency=USD&language=en-US'
     headers = info['headers']
     items = {'storeName': store_name, 'storeId': store_id, 'pageToken': page_token}
+    next_page = None
     try:
         token = get_token()
         x_api_token, bearer_token, x_version = token
@@ -124,12 +127,12 @@ def get_joom_product_by_store(store_name, store_id, page_token=''):
 
         request_data = {
             "origin":
-                {"source": "store", "storeId": store_id}, "count": 100, "pageToken": ""}
+                {"source": "store", "storeId": store_id}, "count": 36, "pageToken": page_token}
         # 代理
         proxies = get_proxy()
 
         # 错误重试
-        next_page = None
+
         for _ in range(2):
             try:
                 request_data = json.dumps(request_data)
@@ -152,16 +155,22 @@ def get_joom_product_by_store(store_name, store_id, page_token=''):
         # 如果获取到下一页
         if next_page:
             if next_page != 'last':
+
+                # 控制爬取频率
+                time.sleep(2)
                 rd.lpush('joom_task', ','.join(['store', store_name, store_id, next_page]))
             else:
                 print('this is the last page!')
         # 如果获取失败，重新传入当前页
         else:
+            # 控制爬取频率
+            time.sleep(2)
+            print(f'{page_token} 爬取失败,重新入队')
             rd.lpush('joom_task', ','.join(['store', store_name, store_id, page_token]))
-
     except Exception as why:
         print('fail to get result cause of {}'.format(why))
 
+    items['nextPage'] = next_page
     return items
 
 
@@ -341,9 +350,9 @@ def get_proxy():
 
 
 if __name__ == '__main__':
-    get_joom_product_by_store.delay('YHMen', '1507714387304326627-56-3-709-4035548807', '')
-    # res = get_joom_product_by_store('YHMen', '1507714387304326627-56-3-709-4035548807')
-    # print(res)
+    # get_joom_product_by_store.delay('YHMen', '1507714387304326627-56-3-709-4035548807', '')
+    res = get_joom_product_by_store('ECMLN Store', '5bbae5c428fc71030dc8c44c','2-vHvGhlw4pgg9_xjkuG9pF_wnTBN5AcL6DxhZGUc3nDGCpGlvZmYoo29mZiQ')
+    print(res)
 
 
 
